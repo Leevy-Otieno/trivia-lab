@@ -33,6 +33,7 @@ const quizQuestions = [
 let currentQuestionIndex = 0;
 let userScore = 0;
 let timer;
+
 const readline = require("readline").createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -40,14 +41,13 @@ const readline = require("readline").createInterface({
 
 function beginQuiz() {
   console.log(" WELCOME TO THE TRIVIA QUESTIONS CLI GAME!");
-
   console.log(`You will answer ${quizQuestions.length} questions.\n`);
   presentQuestion();
 }
 
 function presentQuestion() {
   if (currentQuestionIndex >= quizQuestions.length) {
-    endGame();
+    showResults();
     return;
   }
 
@@ -56,17 +56,18 @@ function presentQuestion() {
     `\n QUESTION ${currentQuestionIndex + 1}/${quizQuestions.length}`
   );
   console.log("=".repeat(40));
-  console.log(`${currentQ.question}`);
+  console.log(currentQ.question);
   console.log("-".repeat(40));
 
-  currentQ.options.forEach((option, index) => {
-    console.log(`${index + 1}. ${option}`);
+  currentQ.options.forEach((opt, idx) => {
+    console.log(`${idx + 1}. ${opt}`);
   });
 
-  console.log(`\n⏰ Time Limit: ${currentQ.timeLimit} seconds`);
+  console.log(`\n Time Limit: ${currentQ.timeLimit} seconds`);
   console.log("Enter the NUMBER of your answer (1-4):");
+
   startTimer(currentQ.timeLimit);
-  waitForAnswer(currentQ);
+  captureAnswer(currentQ);
 }
 
 function startTimer(timeLimit) {
@@ -76,9 +77,10 @@ function startTimer(timeLimit) {
     process.stdout.write(`\r⏳ Time remaining: ${timeLeft}s `);
     if (timeLeft <= 0) {
       clearInterval(timer);
-      console.log("\n\n⏰ TIME'S UP!");
+      console.log("\n\n= TIME'S UP!");
       currentQuestionIndex++;
-      presentQuestion();
+      // Show next question after a short pause
+      setTimeout(presentQuestion, 500);
     }
   }, 1000);
 }
@@ -94,8 +96,8 @@ function captureAnswer(question) {
       answerIndex >= question.options.length
     ) {
       console.log("❌ Invalid input.");
-      currentQuestionIndex++;
-      presentQuestion();
+      // Retry the same question
+      setTimeout(() => presentQuestion(), 500);
       return;
     }
 
@@ -104,15 +106,13 @@ function captureAnswer(question) {
 
     if (isCorrect) {
       userScore++;
-      console.log(`CORRECT Answer`);
+      console.log("✅ CORRECT!");
     } else {
-      console.log(`Wrong answer. Correct: "${question.correctAnswer}"`);
+      console.log(`❌ INCORRECT. Correct: "${question.correctAnswer}"`);
     }
 
     currentQuestionIndex++;
-    setTimeout(() => {
-      presentQuestion();
-    }, 1500);
+    setTimeout(() => presentQuestion(), 1500);
   });
 }
 
@@ -128,10 +128,11 @@ function showResults() {
   console.log(`   Correct: ${userScore}/${totalQuestions}`);
   console.log(`   Score: ${scorePercentage.toFixed(1)}%`);
 
-  if (scorePercentage >= 80) console.log(" EXCELLENT WORK!");
-  else if (scorePercentage >= 60) console.log(" GOOD JOB!");
-  else if (scorePercentage >= 40) console.log(" NOT BAD!");
-  else console.log(" BETTER LUCK NEXT TIME!");
+  if (scorePercentage >= 80) console.log("  EXCELLENT WORK!");
+  else if (scorePercentage >= 60) console.log("  GOOD JOB!");
+  else if (scorePercentage >= 40) console.log("  NOT BAD!");
+  else console.log("  BETTER LUCK NEXT TIME!");
+
   readline.close();
 }
 
